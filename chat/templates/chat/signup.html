@@ -1,0 +1,15 @@
+<h2>ChatGPT Clone</h2>
+
+<form method="post">
+    {% csrf_token %}
+    <input type="text" name="question" placeholder="Ask something..." required>
+    <button type="submit">Send</button>
+</form>
+
+<hr>
+
+{% for chat in chats %}
+    <p><b>You:</b> {{ chat.question }}</p>
+    <p><b>AI:</b> {{ chat.answer }}</p>
+    <hr>
+{% endfor %}
