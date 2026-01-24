@@ -41,16 +41,16 @@ def chat_view(request):
 
     return render(request, "chat/chat.html", {"chats": chats})
 
-@csrf_exempt  # Exempt CSRF for API calls (use cautiously; consider proper CORS setup)
-@require_http_methods(["POST"])
-def chat_api(request):
-    try:
-        data = json.loads(request.body)
-        question = data.get('question')
-        if not question:
-            return JsonResponse({'error': 'Question is required'}, status=400)
-        answer = get_ai_response(question)
-        return JsonResponse({'answer': answer})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+# @csrf_exempt  # Exempt CSRF for API calls (use cautiously; consider proper CORS setup)
+# @require_http_methods(["POST"])
+# def chat_api(request):
+#     try:
+#         data = json.loads(request.body)
+#         question = data.get('question')
+#         if not question:
+#             return JsonResponse({'error': 'Question is required'}, status=400)
+#         answer = get_ai_response(question)
+#         return JsonResponse({'answer': answer})
+#     except Exception as e:
+#         return JsonResponse({'error': str(e)}, status=500)
 
