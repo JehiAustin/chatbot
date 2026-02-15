@@ -6,6 +6,11 @@ from chat.llm import get_ai_response
 from chat.models import ChatMessage
 
 SAMPLE_QUERIES = [
+    "Hi",
+    "Hello",
+    "What is your name?",
+    "How are you?",
+    "What can you do?",
     "What is Python?",
     "How do I create a Django project?",
     "Explain REST APIs in simple terms",
