@@ -1,56 +1,36 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required
-from .models import ChatMessage
-from .llm import get_ai_response
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
 import json
 
+from django.http import JsonResponse
+from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 
-def signup(request):
-    if request.method == "POST":
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect("chat")
-    else:
-        form = UserCreationForm()
-    return render(request, "chat/signup.html", {"form": form})
+from .llm import get_ai_response
+from .models import ChatMessage
 
-@login_required
+
 def chat_view(request):
-    print("----------- trigger")
-    chats = ChatMessage.objects.filter(user=request.user)
-
     if request.method == "POST":
-        question = request.POST["question"]
-        print("USER QUESTION:", question)
-        
-        answer = get_ai_response(question)
-        print("AI ANSWER:", answer) 
+        question = request.POST.get("question", "").strip()
+        if question:
+            answer = get_ai_response(question)
+            ChatMessage.objects.create(question=question, answer=answer)
 
-        ChatMessage.objects.create(
-            user=request.user,
-            question=question,
-            answer=answer
-        )
-
+    chats = ChatMessage.objects.all().order_by("created_at")
     return render(request, "chat/chat.html", {"chats": chats})
 
-# @csrf_exempt  # Exempt CSRF for API calls (use cautiously; consider proper CORS setup)
-# @require_http_methods(["POST"])
-# def chat_api(request):
-#     try:
-#         data = json.loads(request.body)
-#         question = data.get('question')
-#         if not question:
-#             return JsonResponse({'error': 'Question is required'}, status=400)
-#         answer = get_ai_response(question)
-#         return JsonResponse({'answer': answer})
-#     except Exception as e:
-#         return JsonResponse({'error': str(e)}, status=500)
 
+@csrf_exempt
+@require_http_methods(["POST"])
+def chat_api(request):
+    try:
+        data = json.loads(request.body)
+        question = data.get("question", "").strip()
+        if not question:
+            return JsonResponse({"error": "Question is required"}, status=400)
+        answer = get_ai_response(question)
+        return JsonResponse({"answer": answer})
+    except json.JSONDecodeError as e:
+        return JsonResponse({"error": f"Invalid JSON: {e}"}, status=400)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)

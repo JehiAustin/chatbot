@@ -13,14 +13,10 @@
         button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
         button:hover { background: #0056b3; }
         button:disabled { background: #6c757d; cursor: not-allowed; }
-        .logout { float: right; }
         .loading { display: none; color: #6c757d; font-style: italic; }
     </style>
 </head>
 <body>
-    <div class="logout">
-        <a href="{% url 'logout' %}">Logout</a>
-    </div>
     <h2>ChatGPT Clone</h2>
 
     <div class="chat-container" id="chatContainer">
