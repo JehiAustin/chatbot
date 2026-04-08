@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ChatGPT Clone</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .chat-container { border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; height: 400px; overflow-y: auto; }
+        .message { margin-bottom: 15px; }
+        .user { color: #007bff; }
+        .ai { color: #28a745; }
+        .form-container { display: flex; gap: 10px; }
+        input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+        .loading { display: none; color: #6c757d; font-style: italic; }
+    </style>
+</head>
+<body>
+    <h2>ChatGPT Clone</h2>
+
+    <div class="chat-container" id="chatContainer">
+        {% for chat in chats %}
+            <div class="message">
+                <p class="user"><b>You:</b> {{ chat.question }}</p>
+                <p class="ai"><b>AI:</b> {{ chat.answer }}</p>
+            </div>
+        {% empty %}
+            <p>No chats yet. Start a conversation!</p>
+        {% endfor %}
+        <div class="loading" id="loadingMessage">AI is thinking...</div>
+    </div>
+
+    <form method="post" class="form-container" id="chatForm">
+        {% csrf_token %}
+        <input type="text" name="question" id="questionInput" placeholder="Ask something..." required>
+        <button type="submit" id="sendButton">Send</button>
+    </form>
+
+    <script>
+        // Scroll to bottom on page load
+        window.addEventListener('load', function() {
+            scrollToBottom();
+        });
+
+        // Handle form submission
+        document.getElementById('chatForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const questionInput = document.getElementById('questionInput');
+            const sendButton = document.getElementById('sendButton');
+            const loadingMessage = document.getElementById('loadingMessage');
+            const chatContainer = document.getElementById('chatContainer');
+            
+            const question = questionInput.value.trim();
+            if (!question) return;
+            
+            // Show loading state
+            sendButton.disabled = true;
+            sendButton.textContent = 'Sending...';
+            loadingMessage.style.display = 'block';
+            scrollToBottom();
+            
+            // Create form data
+            const formData = new FormData();
+            formData.append('question', question);
+            formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+            
+            // Send request
+            fetch('', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(html => {
+                // Create a temporary div to parse the response
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                
+                // Get the updated chat container
+                const newChatContainer = tempDiv.querySelector('#chatContainer');
+                if (newChatContainer) {
+                    chatContainer.innerHTML = newChatContainer.innerHTML;
+                }
+                
+                // Reset form
+                questionInput.value = '';
+                sendButton.disabled = false;
+                sendButton.textContent = 'Send';
+                
+                // Scroll to bottom
+                scrollToBottom();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                sendButton.disabled = false;
+                sendButton.textContent = 'Send';
+                loadingMessage.style.display = 'none';
+            });
+        });
+        
+        function scrollToBottom() {
+            const chatContainer = document.getElementById('chatContainer');
+            setTimeout(() => {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 100);
+        }
+    </script>
+</body>
+</html>
